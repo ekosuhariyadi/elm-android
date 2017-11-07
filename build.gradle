@@ -1,0 +1,37 @@
+group 'com.codangcoding'
+version '1.0-0'
+
+buildscript {
+
+    ext {
+        kotlin_version = '1.1.51'
+        rxjava2_version = '2.1.6'
+        rxrelay_version = '2.0.0'
+    }
+
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'kotlin'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    implementation "io.reactivex.rxjava2:rxjava:$rxjava2_version"
+    implementation "com.jakewharton.rxrelay2:rxrelay:$rxrelay_version"
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.6"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.6"
+}
