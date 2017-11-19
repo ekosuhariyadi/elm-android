@@ -15,64 +15,55 @@ buildscript {
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
     }
 }
 
 apply plugin: 'kotlin'
 
-ext {
-    bintrayRepo = 'open-source-projects'
-    bintrayName = 'elm-android'
+group = GROUP
+version = VERSION_NAME
 
-    publishedGroupId = 'com.codangcoding'
-    libraryName = 'elm-android'
-    artifact = 'elm-android'
-
-    libraryDescription = 'Bring The Elm Architecture to Android Development'
-
-    siteUrl = 'https://github.com/ekosuhariyadi/elm-android'
-    gitUrl = 'https://github.com/ekosuhariyadi/elm-android.git'
-
-    libraryVersion = '1.0-0'
-
-    licenseName = 'The Apache Software License, Version 2.0'
-    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-    allLicenses = ["Apache-2.0"]
-}
-
+apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
 
-version = libraryVersion
+// Create source/javadoc artifacts for publishing
+apply from: "$rootDir/gradle/artifacts.gradle"
 
-if (project.hasProperty("android")) { // Android libraries
-    task sourcesJar(type: Jar) {
-        classifier = 'sources'
-        from android.sourceSets.main.java.srcDirs
-    }
+// Configure android-maven-gradle-plugin
+install {
+    repositories.mavenInstaller.pom.project {
+        name POM_NAME
+        description POM_DESCRIPTION
+        packaging POM_PACKAGING
+        url POM_URL
 
-    task javadoc(type: Javadoc) {
-        source = android.sourceSets.main.java.srcDirs
-        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    }
-} else { // Java libraries
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
-        from sourceSets.main.allSource
+        licenses {
+            license {
+                name POM_LICENCE_NAME
+                url POM_LICENCE_URL
+                distribution POM_LICENCE_DIST
+            }
+        }
+
+        scm {
+            url POM_SCM_URL
+            connection POM_SCM_CONNECTION
+            developerConnection POM_SCM_DEV_CONNECTION
+        }
+
+        developers {
+            developer {
+                id 'EkoSuhariyadi'
+                name 'Eko Suhariyadi'
+            }
+        }
     }
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives javadocJar
-    archives sourcesJar
-}
-
-// Bintray
+// Configure gradle-bintray-plugin (for publishing releases)
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
 
@@ -81,17 +72,23 @@ bintray {
     key = properties.getProperty("bintray.apikey")
 
     configurations = ['archives']
+
+    publish = true
+
     pkg {
-        repo = bintrayRepo
-        name = bintrayName
-        desc = libraryDescription
-        websiteUrl = siteUrl
-        vcsUrl = gitUrl
-        licenses = allLicenses
-        publish = true
+        repo = REPO_NAME
+        name = POM_NAME
+        desc = POM_DESCRIPTION
+        userOrg = REPO_USER
+        licenses = ['Apache-2.0']
+        labels = ['dagger2', 'android-arch-viewmodel']
+        websiteUrl = REPO_URL
+        issueTrackerUrl = REPO_ISSUE_URL
+        vcsUrl = REPO_GIT_URL
         publicDownloadNumbers = true
+
         version {
-            desc = libraryDescription
+            desc = POM_DESCRIPTION
             gpg {
                 sign = true //Determines whether to GPG sign the files. The default is false
                 passphrase = properties.getProperty("bintray.gpg.password")
@@ -101,13 +98,18 @@ bintray {
     }
 }
 
+if (project.hasProperty('bintrayUser') && project.hasProperty('bintrayKey')) {
+    bintray.user = project.bintrayUser
+    bintray.key = project.bintrayKey
+}
+
 repositories {
     mavenCentral()
     jcenter()
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     implementation "io.reactivex.rxjava2:rxjava:$rxjava2_version"
     implementation "com.jakewharton.rxrelay2:rxrelay:$rxrelay_version"
 }
